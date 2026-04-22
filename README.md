@@ -7,6 +7,8 @@
 
 - Test Runner: Playwright
 
+- DB : SQLite
+
 - CI/CD: GitHub Actions
 
 - Infrastructure: Oracle Cloud (Docker-based execution environment)
