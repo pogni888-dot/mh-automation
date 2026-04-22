@@ -1,4 +1,4 @@
-# 🚀 Levyplay Automation (QA Portfolio)
+# 🚀 MinHo Automation (QA Portfolio)
 카카오톡 서비스 및 주요 웹 플랫폼의 품질 보증을 위한 Playwright 기반 E2E 테스트 자동화 프레임워크입니다.
 단순한 스크립트 작성을 넘어, 지속적 통합(CI) 환경 구축과 유지보수성을 고려한 설계에 집중했습니다.
 
