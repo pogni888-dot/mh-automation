@@ -40,5 +40,3 @@
 ## 🚀 Setup & Execution
 1. Install dependencies
 2. Run Tests
-## ⚙️ CI/CD Service
-이 프로젝트는 GitHub Actions와 연동되어 있습니다. .github/workflows/playwright.yml 설정을 통해 클라우드 환경에서 자동화된 테스트를 수행합니다.
