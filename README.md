@@ -3,14 +3,12 @@
 단순한 스크립트 작성을 넘어, 지속적 통합(CI) 환경 구축과 유지보수성을 고려한 설계에 집중했습니다.
 
 ## 🛠 Tech Stack
-- Language: TypeScript / Node.js
-
+- Frontend : React
+- Backend : Node.js / Express
+- Language: TypeScript
 - Test Runner: Playwright
-
 - DB : SQLite
-
 - CI/CD: GitHub Actions
-
 - Infrastructure: Oracle Cloud (Docker-based execution environment)
 
 ## 📂 Project Structure & Design Intent
