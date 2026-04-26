@@ -36,7 +36,3 @@
 ### Data Entry Automation (C2C Marketplace)
 
 중고거래 플랫폼 상품 업로드: 다중 이미지 업로드, 카테고리 자동 선택, 가격 입력 등 입력 폼(Form)이 많은 중고거래 서비스의 특성을 반영했습니다. 반복적인 업로드 수동 테스트를 자동화하여 운영 효율을 개선하고, 복잡한 폼 검증(Validation)을 자동화했습니다.
-
-## 🚀 Setup & Execution
-1. Install dependencies
-2. Run Tests
