@@ -160,8 +160,8 @@ function App() {
   const runTest = (filename) => {
     if (activeTest) return;
 
-    // generate_auth.spec.ts, kakao_login.spec.ts, bunjang_login.spec.ts일 때 로그인 모달 표시
-    if (filename === 'generate_auth.spec.ts' || filename === 'kakao_login.spec.ts' || filename === 'bunjang_login.spec.ts') {
+    // generate_auth.spec.ts, kakao_login.spec.ts, bunjang_login.spec.ts, yeogi_login.spec.ts일 때 로그인 모달 표시
+    if (filename === 'generate_auth.spec.ts' || filename === 'kakao_login.spec.ts' || filename === 'bunjang_login.spec.ts' || filename === 'yeogi_login.spec.ts') {
       setPendingTest(filename);
       setShowAuthModal(true);
       return;
