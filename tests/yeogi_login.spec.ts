@@ -1,6 +1,14 @@
 import { test, expect } from './fixtures';
 
 test('여기어때 사이트 진입', async ({ page }) => {
+    // 환경변수에서 아이디/비밀번호 가져오기 (대시보드 팝업에서 입력한 값)
+    const userId = process.env.KAKAO_ID;
+    const userPw = process.env.KAKAO_PW;
+
+    if (!userId || !userPw) {
+        throw new Error('❌ 아이디와 비밀번호가 입력되지 않았습니다. 대시보드에서 Run Test 클릭 후 입력해주세요.');
+    }
+
     // 1. 여기어때 메인 페이지로 이동
     console.log('여기어때 접속 시도...');
     await page.goto('https://www.yeogi.com/', { waitUntil: 'domcontentloaded' });
@@ -42,14 +50,14 @@ test('여기어때 사이트 진입', async ({ page }) => {
 
     // 7. div의 item_form 중 첫번째 요소 안의 input에 아이디 입력
     console.log('카카오 아이디 입력...');
-    await popup.locator('div.item_form').nth(0).locator('input').fill('pogni822@naver.com');
+    await popup.locator('div.item_form').nth(0).locator('input').fill(userId);
 
     // 8. 2초 대기
     await popup.waitForTimeout(2000);
 
     // 9. div의 item_form 중 두번째 요소 안의 input에 비밀번호 입력
     console.log('카카오 비밀번호 입력...');
-    await popup.locator('div.item_form').nth(1).locator('input').fill('wpwnehQ!12');
+    await popup.locator('div.item_form').nth(1).locator('input').fill(userPw);
 
     // 10. 2초 대기
     await popup.waitForTimeout(2000);
