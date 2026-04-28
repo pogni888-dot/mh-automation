@@ -72,7 +72,7 @@ test('카카오 로그인 테스트', async ({ page }) => {
     await page.waitForTimeout(1000);
 
     // 3. 검색 결과에서 첫 번째 상품 클릭
-    await page.locator('a.link_thumb').first().click();
+    await page.locator('a.link_prdunit').first().click();
     await page.waitForLoadState();
 
     // 4. 상품 옵션 설정
@@ -96,7 +96,7 @@ test('카카오 로그인 테스트', async ({ page }) => {
 
     // 5. 주문정보 동의 버튼 클릭 (커스텀 제작상품)
     try {
-        await page.locator('button#focus_btn').click({ timeout: 1500 });
+        await page.getByRole('button', { name: '동의', exact: false }).click({ timeout: 1500 });
         await page.waitForTimeout(3000);
         await page.waitForLoadState();
     } catch (e) {
