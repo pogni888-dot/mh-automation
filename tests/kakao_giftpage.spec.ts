@@ -28,7 +28,7 @@ test('카카오 로그인 테스트', async ({ page }) => {
     await page.waitForTimeout(2000);
 
     // 3. 검색 결과에서 첫 번째 상품 클릭
-    const firstProduct = page.locator('a.link_thumb').first();
+    const firstProduct = page.locator('a.link_prdunit').first();
     await firstProduct.waitFor({ state: 'visible', timeout: 10000 });
     await firstProduct.click();
     await page.waitForLoadState();

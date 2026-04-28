@@ -60,23 +60,24 @@ test('장바구니 테스트', async ({ page }) => {
     // 2. 검색 버튼을 찾아서 클릭
     await page.click('a.link_search');
 
-    // 3. 검색 화면에서 '헤라'를 검색
-    await page.fill('#searchInput', '헤라');
+    // 3. 검색 화면에서 헤라상품 검색
+    await page.fill('#searchInput', '센슈얼 누드 스테인 틴트 (+헤라 쿨 썸머 뷰티 비치백 증정)');
     await page.keyboard.press('Enter');
 
     // 결과 확인을 위해 잠시 대기
     await page.waitForTimeout(2000);
 
     // 4. 검색 결과에서 첫 번째 상품 포커싱 & 장바구니 버튼 클릭
-    await page.locator('div.cmp_prd').nth(0).scrollIntoViewIfNeeded();
+    await page.locator('div.unit_prd').nth(0).locator('button.btn_cart > span.ico_base.ico_cart').scrollIntoViewIfNeeded();
+    await page.waitForLoadState();
     await page.waitForTimeout(1000);
-    await page.locator('div.cmp_prd').nth(0).locator('button.btn_cart > span.ico_base.ico_cart').click();
+    await page.locator('div.unit_prd').nth(0).locator('span.ico_cart').click();
     await page.waitForLoadState();
     await page.waitForTimeout(1000);
 
     // 5. 주문정보 동의 버튼 클릭 (커스텀 제작상품)
     try {
-        await page.locator('button#focus_btn').click({ timeout: 1500 });
+        await page.getByRole('button', { name: '동의', exact: false }).click({ timeout: 1500 });
         await page.waitForTimeout(3000);
         await page.waitForLoadState();
     } catch (e) {
