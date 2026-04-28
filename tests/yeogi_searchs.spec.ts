@@ -21,52 +21,72 @@ test('여기어때 사이트 진입', async ({ page }) => {
     // 2. 2초 대기
     await page.waitForTimeout(2000);
 
-    // 3. div클래스 'gc-calendar-month' 첫번째 요소 확인
-    const calendarMonth = page.locator('div.gc-calendar-month').first();
-    await calendarMonth.waitFor({ state: 'visible', timeout: 5000 });
-
-    // 4. 해당 요소 하위의 ul클래스 'css-gwlvhb' 두번째 요소 확인
-    const targetUl = calendarMonth.locator('ul.css-gwlvhb').nth(1);
-
-    // 5. 2초대기
-    await page.waitForTimeout(2000);
-
-    // 6. 해당 ul 클래스 하위의 li 태그 확인
-    const liElements = targetUl.locator('li');
-
-    // 해당 월 달력에서 선택 가능한 맨 마지막 두 날짜 찾기
-    const liCount = await liElements.count();
-    const availableIndices = [];
-
-    // 7. 모든 li를 순회하며 선택 가능한(버튼이 활성화된) 날짜의 인덱스를 수집
-    for (let i = 0; i < liCount; i++) {
-        const button = liElements.nth(i).locator('button');
-        if (await button.count() > 0) {
-            // 버튼이 활성화되어 있는지 확인 (disabled 상태 제외)
-            const isEnabled = await button.isEnabled();
-            if (isEnabled) {
-                availableIndices.push(i);
+    // --- 달력에서 선택 가능한 날짜 수집 헬퍼 함수 ---
+    const collectAvailableDates = async (calendarLocator) => {
+        const ul = calendarLocator.locator('ul.css-gwlvhb').nth(1);
+        const lis = ul.locator('li');
+        const count = await lis.count();
+        const indices = [];
+        for (let i = 0; i < count; i++) {
+            const button = lis.nth(i).locator('button');
+            if (await button.count() > 0 && await button.isEnabled()) {
+                indices.push(i);
             }
         }
-    }
+        return { ul, lis, indices };
+    };
 
-    // 8. 마지막 두 날짜 선택
-    if (availableIndices.length >= 2) {
-        const checkinIndex = availableIndices[availableIndices.length - 2];
-        const checkoutIndex = availableIndices[availableIndices.length - 1];
+    // 3. 첫 번째 달력(현재 월) 확인
+    const firstMonth = page.locator('div.gc-calendar-month').first();
+    await firstMonth.waitFor({ state: 'visible', timeout: 5000 });
+    await page.waitForTimeout(2000);
 
-        console.log(`선택 가능한 맨 마지막 두 날짜 클릭 (인덱스: ${checkinIndex}, ${checkoutIndex})`);
+    const first = await collectAvailableDates(firstMonth);
+    console.log(`첫 번째 달력 선택 가능 날짜 수: ${first.indices.length}`);
 
-        // 체크인 날짜 (마지막에서 두 번째)
-        await liElements.nth(checkinIndex).locator('button').click();
+    if (first.indices.length >= 2) {
+        // ✅ Case 1: 첫 번째 달력에 2개 이상 → 마지막 두 날짜 선택
+        const checkinIdx = first.indices[first.indices.length - 2];
+        const checkoutIdx = first.indices[first.indices.length - 1];
+        console.log(`[Case 1] 첫 번째 달력에서 마지막 두 날짜 선택 (인덱스: ${checkinIdx}, ${checkoutIdx})`);
 
-        // 9. 2초 대기
+        await first.lis.nth(checkinIdx).locator('button').click();
+        await page.waitForTimeout(2000);
+        await first.lis.nth(checkoutIdx).locator('button').click();
+
+    } else if (first.indices.length === 1) {
+        // ✅ Case 2: 첫 번째 달력에 1개만 → 체크인은 여기서, 체크아웃은 다음 달에서
+        const checkinIdx = first.indices[0];
+        console.log(`[Case 2] 첫 번째 달력 마지막 날짜를 체크인으로 선택 (인덱스: ${checkinIdx})`);
+        await first.lis.nth(checkinIdx).locator('button').click();
         await page.waitForTimeout(2000);
 
-        // 10. 체크아웃 날짜 (마지막)
-        await liElements.nth(checkoutIndex).locator('button').click();
+        const secondMonth = page.locator('div.gc-calendar-month').nth(1);
+        const second = await collectAvailableDates(secondMonth);
+        if (second.indices.length >= 1) {
+            const checkoutIdx = second.indices[0];
+            console.log(`[Case 2] 두 번째 달력 첫 번째 날짜를 체크아웃으로 선택 (인덱스: ${checkoutIdx})`);
+            await second.lis.nth(checkoutIdx).locator('button').click();
+        } else {
+            console.log('⚠️ 두 번째 달력에도 선택 가능한 날짜가 없습니다.');
+        }
+
     } else {
-        console.log("선택 가능한 날짜가 2개 이상 존재하지 않습니다.");
+        // ✅ Case 3: 첫 번째 달력에 0개 → 두 번째 달력에서 첫 두 날짜 선택
+        console.log('[Case 3] 첫 번째 달력에 선택 가능 날짜 없음 → 두 번째 달력으로 이동');
+        const secondMonth = page.locator('div.gc-calendar-month').nth(1);
+        const second = await collectAvailableDates(secondMonth);
+
+        if (second.indices.length >= 2) {
+            const checkinIdx = second.indices[0];
+            const checkoutIdx = second.indices[1];
+            console.log(`[Case 3] 두 번째 달력에서 첫 두 날짜 선택 (인덱스: ${checkinIdx}, ${checkoutIdx})`);
+            await second.lis.nth(checkinIdx).locator('button').click();
+            await page.waitForTimeout(2000);
+            await second.lis.nth(checkoutIdx).locator('button').click();
+        } else {
+            console.log('⚠️ 두 번째 달력에도 선택 가능한 날짜가 2개 미만입니다.');
+        }
     }
 
     // 11. 2초 대기
