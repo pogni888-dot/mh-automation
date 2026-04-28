@@ -33,6 +33,7 @@ function App() {
   const terminalEndRef = useRef(null);
   const terminalWindowRef = useRef(null);
   const terminalSectionRef = useRef(null);
+  const liveStreamRef = useRef(null);
   const [authLastRun, setAuthLastRun] = useState(0);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authId, setAuthId] = useState('');
@@ -112,10 +113,6 @@ function App() {
     socket.on('test-start', (filename) => {
       setActiveTest(filename);
       setLogs(prev => [...prev, `\n--- STARTING TEST: ${filename} ---\n`]);
-      // 자동화 시작 시 Console Output 섹션으로 페이지 스크롤
-      setTimeout(() => {
-        terminalSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
     });
 
     socket.on('test-output', (data) => {
@@ -124,7 +121,15 @@ function App() {
 
     // 실시간 스트리밍 데이터 수신
     socket.on('stream-frame', (data) => {
-      setStreamImage(`data:image/jpeg;base64,${data}`);
+      setStreamImage(prev => {
+        // 첫 프레임 도착 시 라이브 스트리밍 섹션으로 페이지 스크롤
+        if (!prev) {
+          setTimeout(() => {
+            liveStreamRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 150);
+        }
+        return `data:image/jpeg;base64,${data}`;
+      });
     });
 
     socket.on('test-complete', ({ code }) => {
@@ -536,7 +541,7 @@ function App() {
       )}
 
       {streamImage && (
-        <div className="live-stream-section fade-in">
+        <div className="live-stream-section fade-in" ref={liveStreamRef}>
           <div className="stream-wrapper">
             <div className="stream-header">
               <div className="live-badge">
