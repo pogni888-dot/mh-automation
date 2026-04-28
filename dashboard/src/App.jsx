@@ -32,6 +32,7 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const terminalEndRef = useRef(null);
   const terminalWindowRef = useRef(null);
+  const terminalSectionRef = useRef(null);
   const [authLastRun, setAuthLastRun] = useState(0);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authId, setAuthId] = useState('');
@@ -111,6 +112,10 @@ function App() {
     socket.on('test-start', (filename) => {
       setActiveTest(filename);
       setLogs(prev => [...prev, `\n--- STARTING TEST: ${filename} ---\n`]);
+      // 자동화 시작 시 Console Output 섹션으로 페이지 스크롤
+      setTimeout(() => {
+        terminalSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     });
 
     socket.on('test-output', (data) => {
@@ -692,7 +697,7 @@ function App() {
               </div>
             </div>
 
-            <div className="terminal-section">
+            <div className="terminal-section" ref={terminalSectionRef}>
               <div className="terminal-header">
                 <Terminal size={18} />
                 <span>Console Output</span>
