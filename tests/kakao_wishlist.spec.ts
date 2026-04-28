@@ -67,7 +67,7 @@ test('카카오 로그인 테스트', async ({ page }) => {
     await page.waitForTimeout(2000);
 
     // 검색 결과 첫 번째 상품 진입
-    const firstProduct = page.locator('div.cmp_prd').first();
+    const firstProduct = page.locator('a.link_prdunit').first();
     await firstProduct.click();
     await page.waitForLoadState();
     await page.waitForTimeout(2000);
