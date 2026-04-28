@@ -15,9 +15,9 @@ import path from 'path';
 
 const authFile = path.resolve(__dirname, '../auth.json');
 
-// 카카오 계정 정보 (환경변수 우선, 없으면 기본값 사용)
-const KAKAO_ID = process.env.KAKAO_ID || 'pogni822@naver.com';
-const KAKAO_PW = process.env.KAKAO_PW || 'wpwnehQ!12';
+// 카카오 계정 정보 (환경변수 우선)
+const KAKAO_ID = process.env.KAKAO_ID || '';
+const KAKAO_PW = process.env.KAKAO_PW || '';
 
 test('카카오 로그인 세션 생성 및 저장', async ({ page }) => {
     test.setTimeout(300000); // 5분 타임아웃 (2차 인증 대기 포함)

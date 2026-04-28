@@ -5,8 +5,8 @@ import path from 'path';
 const AUTH_FILE = path.resolve(__dirname, '../auth.json');
 
 // 카카오 계정 정보
-const KAKAO_ID = 'pogni822@naver.com';
-const KAKAO_PW = 'wpwnehQ!12';
+const KAKAO_ID = process.env.KAKAO_ID || '';
+const KAKAO_PW = process.env.KAKAO_PW || '';
 
 /**
  * 카카오 로그인을 자동으로 처리하는 유틸리티 함수

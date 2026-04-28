@@ -40,9 +40,9 @@ const fs = require('fs');
     // 아이디/비밀번호 입력
     try {
         console.log('3. 로그인 정보 입력...');
-        await page.fill('#loginId--1', 'pogni822@naver.com');
+        await page.fill('#loginId--1', process.env.KAKAO_ID || '');
         await page.waitForTimeout(500);
-        await page.fill('#password--2', 'wpwnehQ!12');
+        await page.fill('#password--2', process.env.KAKAO_PW || '');
         await page.waitForTimeout(500);
 
         console.log('4. 로그인 버튼 클릭...');
