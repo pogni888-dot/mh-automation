@@ -37,16 +37,16 @@ test.describe('번개장터 테스트', () => {
         // 2. 2초 대기
         await page.waitForTimeout(2000);
 
-        // 3. div클래스명 'sc-jtRfpW dwQPdU' 하위(>)의 버튼 클래스명 'sc-dqBHgY dDTfxq' 클릭
+        // 3. span 텍스트 '로그인/회원가입' 버튼 클릭 (getByRole 활용)
         console.log('3. 로그인/회원가입 버튼 클릭...');
-        await page.locator('div.sc-jtRfpW.dwQPdU > button.sc-dqBHgY.dDTfxq').click();
+        await page.getByRole('button', { name: '로그인/회원가입' }).click();
 
         // 4. 2초 대기
         await page.waitForTimeout(2000);
 
-        // 5. div클래스명 'sc-fOKMvo icXGke' 하위(>)의 버튼 클래스명 'sc-gHboQg bSxxhX' 클릭
-        console.log('5. 로그인 방식 선택 버튼 클릭...');
-        await page.locator('div.sc-fOKMvo.icXGke > button.sc-gHboQg.bSxxhX').click();
+        // 5. span 텍스트 '카카오톡으로 로그인' 버튼 클릭 (getByRole 활용)
+        console.log('5. 카카오톡으로 로그인 버튼 클릭...');
+        await page.getByRole('button', { name: '카카오톡으로 로그인' }).click();
 
         // 6. 2초 대기
         await page.waitForTimeout(2000);
