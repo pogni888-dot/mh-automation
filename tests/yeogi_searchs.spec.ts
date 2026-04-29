@@ -55,20 +55,20 @@ test('여기어때 사이트 진입', async ({ page }) => {
         await first.lis.nth(checkoutIdx).locator('button').click();
 
     } else if (first.indices.length === 1) {
-        // ✅ Case 2: 첫 번째 달력에 1개만 → 체크인은 여기서, 체크아웃은 다음 달에서
-        const checkinIdx = first.indices[0];
-        console.log(`[Case 2] 첫 번째 달력 마지막 날짜를 체크인으로 선택 (인덱스: ${checkinIdx})`);
-        await first.lis.nth(checkinIdx).locator('button').click();
-        await page.waitForTimeout(2000);
-
+        // ✅ Case 2: 첫 번째 달력에 1개만 → 두 번째 달력으로 이동하여 첫 두 날짜 선택
+        console.log('[Case 2] 첫 번째 달력에 선택 가능 날짜 1개뿐 → 두 번째 달력으로 이동');
         const secondMonth = page.locator('div.gc-calendar-month').nth(1);
         const second = await collectAvailableDates(secondMonth);
-        if (second.indices.length >= 1) {
-            const checkoutIdx = second.indices[0];
-            console.log(`[Case 2] 두 번째 달력 첫 번째 날짜를 체크아웃으로 선택 (인덱스: ${checkoutIdx})`);
+
+        if (second.indices.length >= 2) {
+            const checkinIdx = second.indices[0];
+            const checkoutIdx = second.indices[1];
+            console.log(`[Case 2] 두 번째 달력에서 첫 두 날짜 선택 (체크인: ${checkinIdx}, 체크아웃: ${checkoutIdx})`);
+            await second.lis.nth(checkinIdx).locator('button').click();
+            await page.waitForTimeout(2000);
             await second.lis.nth(checkoutIdx).locator('button').click();
         } else {
-            console.log('⚠️ 두 번째 달력에도 선택 가능한 날짜가 없습니다.');
+            console.log('⚠️ 두 번째 달력에도 선택 가능한 날짜가 2개 미만입니다.');
         }
 
     } else {
@@ -98,9 +98,9 @@ test('여기어때 사이트 진입', async ({ page }) => {
     const searchInput = page.getByPlaceholder('여행지나 숙소를 검색해보세요.');
     await searchInput.click();
 
-    // 4. '서울' 입력
-    console.log("'서울' 입력 시도...");
-    await searchInput.fill('서울');
+    // 4. '잠실' 입력
+    console.log("'잠실' 입력 시도...");
+    await searchInput.fill('잠실');
 
     // 2초 대기
     await page.waitForTimeout(2000);
