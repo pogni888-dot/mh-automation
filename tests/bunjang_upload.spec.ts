@@ -81,61 +81,61 @@ test.describe('번개장터 상품 등록', () => {
         // 10. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 11. span 텍스트 '여성의류' 버튼 클릭 (getByRole 활용)
+        // 11. span 텍스트 '여성의류' 클릭
         console.log('11. 카테고리 선택: 여성의류...');
-        const categoryBtn1 = page.getByRole('button', { name: '여성의류' });
+        const categoryBtn1 = page.locator('span').filter({ hasText: '여성의류' }).first();
         await categoryBtn1.scrollIntoViewIfNeeded();
         await categoryBtn1.click();
 
         // 12. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 13. span 텍스트 '아우터' 버튼 클릭 (getByRole 활용)
+        // 13. span 텍스트 '아우터' 클릭
         console.log('13. 카테고리 선택: 아우터...');
-        const categoryBtn2 = page.getByRole('button', { name: '아우터' });
+        const categoryBtn2 = page.locator('span').filter({ hasText: '아우터' }).first();
         await categoryBtn2.scrollIntoViewIfNeeded();
         await categoryBtn2.click();
 
         // 14. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 15. span 텍스트 '패딩' 버튼 클릭 (getByRole 활용)
+        // 15. span 텍스트 '패딩' 클릭
         console.log('15. 카테고리 선택: 패딩...');
-        const categoryBtn3 = page.getByRole('button', { name: '패딩' });
+        const categoryBtn3 = page.locator('span').filter({ hasText: '패딩' }).first();
         await categoryBtn3.scrollIntoViewIfNeeded();
         await categoryBtn3.click();
 
         // 16. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 17. span 텍스트 '상품 상태를 선택해 주세요' 버튼 클릭 (getByRole 활용)
+        // 17. span 텍스트 '상품 상태를 선택해 주세요' 클릭
         console.log('17. 상품 상태 선택 버튼 클릭...');
-        const statusBtn = page.getByRole('button', { name: '상품 상태를 선택해 주세요' });
+        const statusBtn = page.locator('span').filter({ hasText: '상품 상태를 선택해 주세요' }).first();
         await statusBtn.scrollIntoViewIfNeeded();
         await statusBtn.click();
 
         // 17-1. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 17-2. span 텍스트 '새 상품 (미사용)' 버튼 클릭 (getByRole 활용)
+        // 17-2. span 텍스트 '새 상품 (미사용)' 클릭
         console.log('17-2. 새 상품 (미사용) 선택...');
-        await page.getByRole('button', { name: '새 상품 (미사용)' }).click();
+        await page.locator('span').filter({ hasText: '새 상품 (미사용)' }).first().click();
 
         // 18. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 19. span 텍스트 '사이즈를 선택해 주세요' 버튼 클릭 (getByRole 활용)
+        // 19. span 텍스트 '사이즈를 선택해 주세요' 클릭
         console.log('19. 사이즈 선택 버튼 클릭...');
-        const sizeBtn = page.getByRole('button', { name: '사이즈를 선택해 주세요' });
+        const sizeBtn = page.locator('span').filter({ hasText: '사이즈를 선택해 주세요' }).first();
         await sizeBtn.scrollIntoViewIfNeeded();
         await sizeBtn.click();
 
         // 20. 2초 대기
         await page.waitForTimeout(2000);
 
-        // 21. span 텍스트 'Free' 버튼 클릭 (getByRole 활용)
+        // 21. span 텍스트 'Free' 클릭
         console.log('21. Free 사이즈 선택...');
-        await page.getByRole('button', { name: 'Free' }).click();
+        await page.locator('span').filter({ hasText: 'Free' }).first().click();
 
         // 22. 1초 대기
         await page.waitForTimeout(1000);
