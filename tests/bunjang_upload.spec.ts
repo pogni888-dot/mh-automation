@@ -29,9 +29,9 @@ test.describe('번개장터 상품 등록', () => {
         // 3. 2초 대기
         await page.waitForTimeout(2000);
 
-        // 4. a 클래스명 'sc-eXEjpC BltZS' 요소 클릭
+        // 4. 버튼 텍스트 '판매하기' 클릭 (getByRole 활용)
         console.log('4. 판매하기 버튼 클릭...');
-        const sellBtn = page.locator('a.sc-eXEjpC.BltZS').nth(1);
+        const sellBtn = page.getByRole('button', { name: '판매하기' });
         await sellBtn.scrollIntoViewIfNeeded();
         await sellBtn.click();
 
@@ -81,72 +81,75 @@ test.describe('번개장터 상품 등록', () => {
         // 10. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 11. 버튼 텍스트가 '여성의류'인 버튼 클릭
+        // 11. span 텍스트 '여성의류' 버튼 클릭 (getByRole 활용)
         console.log('11. 카테고리 선택: 여성의류...');
-        const categoryBtn1 = page.locator('button:has-text("여성의류")');
+        const categoryBtn1 = page.getByRole('button', { name: '여성의류' });
         await categoryBtn1.scrollIntoViewIfNeeded();
         await categoryBtn1.click();
 
         // 12. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 13. 버튼 텍스트가 '아우터'인 버튼 클릭
+        // 13. span 텍스트 '아우터' 버튼 클릭 (getByRole 활용)
         console.log('13. 카테고리 선택: 아우터...');
-        const categoryBtn2 = page.locator('button:has-text("아우터")');
+        const categoryBtn2 = page.getByRole('button', { name: '아우터' });
         await categoryBtn2.scrollIntoViewIfNeeded();
         await categoryBtn2.click();
 
         // 14. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 15. 버튼 텍스트가 '패딩'인 버튼 클릭
+        // 15. span 텍스트 '패딩' 버튼 클릭 (getByRole 활용)
         console.log('15. 카테고리 선택: 패딩...');
-        const categoryBtn3 = page.locator('button:has-text("패딩")');
+        const categoryBtn3 = page.getByRole('button', { name: '패딩' });
         await categoryBtn3.scrollIntoViewIfNeeded();
         await categoryBtn3.click();
 
         // 16. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 17. 새 상품 (미사용) 라디오 클릭
-        console.log('17. 새 상품 (미사용) 선택...');
-        const newProductRadio = page.locator('label:has(input[type="radio"]):has-text("새 상품 (미사용)")');
-        await newProductRadio.scrollIntoViewIfNeeded();
-        await newProductRadio.click();
+        // 17. span 텍스트 '상품 상태를 선택해 주세요' 버튼 클릭 (getByRole 활용)
+        console.log('17. 상품 상태 선택 버튼 클릭...');
+        const statusBtn = page.getByRole('button', { name: '상품 상태를 선택해 주세요' });
+        await statusBtn.scrollIntoViewIfNeeded();
+        await statusBtn.click();
+
+        // 17-1. 1초 대기
+        await page.waitForTimeout(1000);
+
+        // 17-2. span 텍스트 '새 상품 (미사용)' 버튼 클릭 (getByRole 활용)
+        console.log('17-2. 새 상품 (미사용) 선택...');
+        await page.getByRole('button', { name: '새 상품 (미사용)' }).click();
 
         // 18. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 19. input 클래스명 'sc-fONwsr yAEIL sc-hRmvpr eyswfN' 요소 클릭
-        console.log('19. 입력 필드 클릭...');
-        const sizeInput = page.locator('input.sc-fONwsr.yAEIL.sc-hRmvpr.eyswfN');
-        await sizeInput.scrollIntoViewIfNeeded();
-        await sizeInput.click();
+        // 19. span 텍스트 '사이즈를 선택해 주세요' 버튼 클릭 (getByRole 활용)
+        console.log('19. 사이즈 선택 버튼 클릭...');
+        const sizeBtn = page.getByRole('button', { name: '사이즈를 선택해 주세요' });
+        await sizeBtn.scrollIntoViewIfNeeded();
+        await sizeBtn.click();
 
-        // 20. 1초 대기
-        await page.waitForTimeout(1000);
+        // 20. 2초 대기
+        await page.waitForTimeout(2000);
 
-        // 21. input value 값이 'Free' 인 요소 클릭
-        console.log('21. Free 옵션 선택...');
-        const freeOption = page.locator('input[value="Free"]');
-        await freeOption.scrollIntoViewIfNeeded();
-        await freeOption.click();
+        // 21. span 텍스트 'Free' 버튼 클릭 (getByRole 활용)
+        console.log('21. Free 사이즈 선택...');
+        await page.getByRole('button', { name: 'Free' }).click();
 
         // 22. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 23. 버튼 클래스명 'sc-gEvEer bZhDVM bun-ui-button' 요소 클릭
-        console.log('23. 확인 버튼 클릭...');
-        const confirmBtn = page.locator('button.sc-gEvEer.bZhDVM.bun-ui-button');
-        await confirmBtn.scrollIntoViewIfNeeded();
-        await confirmBtn.click();
+        // 23. button 텍스트 '완료' 버튼 클릭 (getByRole 활용)
+        console.log('23. 완료 버튼 클릭...');
+        await page.getByRole('button', { name: '완료' }).click();
 
         // 24. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 25. div 클래스명 하위(>)의 textarea 요소 클릭
+        // 25. 페이지 내 textarea 요소 클릭
         console.log('25. 상품 설명 입력 필드 클릭...');
-        const descTextarea = page.locator('div.ProductNewstyle__Content-sc-7fge4a-7.nqDMw > textarea');
+        const descTextarea = page.locator('textarea');
         await descTextarea.scrollIntoViewIfNeeded();
         await descTextarea.click();
 
@@ -160,9 +163,9 @@ test.describe('번개장터 상품 등록', () => {
         // 28. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 29. div 클래스명 하위(>)의 input 요소 클릭 (태그 입력)
+        // 29. input placeholder '태그를 입력해 주세요 (최대 5개)' 요소 클릭
         console.log('29. 태그 입력 필드 클릭...');
-        const tagInput = page.locator('div.TagBoxstyle__WithDeleteAll-sc-jn2mit-12.ihIdoc > input');
+        const tagInput = page.getByPlaceholder('태그를 입력해 주세요 (최대 5개)');
         await tagInput.scrollIntoViewIfNeeded();
         await tagInput.click();
 
@@ -178,7 +181,7 @@ test.describe('번개장터 상품 등록', () => {
 
         // 추천 태그 첫 번째 항목 클릭
         console.log('추천 태그 첫 번째 항목 클릭...');
-        const suggestedTag = page.locator('ul.TagBoxstyle__SuggestedTags-sc-jn2mit-8.ixHygc > li:first-child > button');
+        const suggestedTag = page.locator('ul > li').first();
         await suggestedTag.scrollIntoViewIfNeeded();
         await suggestedTag.click();
 
