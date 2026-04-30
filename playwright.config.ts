@@ -29,6 +29,7 @@ export default defineConfig({
   use: {
     /* 서버(Docker)에서는 headless: true 필수! (모니터/X서버 없음) */
     headless: true,
+    locale: 'ko-KR', // 브라우저 언어 한국어로 고정 (카테고리명 영어 노출 방지)
 
     /* Base URL to use in actions like `await page.goto('')`. */
     // baseURL: 'http://localhost:3000',
