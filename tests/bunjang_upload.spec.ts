@@ -88,9 +88,18 @@ test.describe('번개장터 상품 등록', () => {
         await page.getByText('새 상품 (미사용)', { exact: true }).click();
         await page.waitForTimeout(1000);
 
+        // 사이즈 선택
+        console.log('사이즈 선택...');
+        await page.getByRole('button', { name: '사이즈를 선택해 주세요' }).click();
+        await page.waitForTimeout(1000);
+        await page.getByText('Free', { exact: true }).click();
+        await page.getByRole('button', { name: '완료', exact: true }).click();
+        await page.waitForTimeout(1000);
+
         // 11. 설명 입력
         console.log('11. 설명 입력...');
-        const descTextarea = page.getByPlaceholder(/전화번호, SNS/);
+        // 정규식 대신 exact: false 옵션(부분 일치)을 사용하거나 전체 문자열을 넣는 것이 직관적입니다.
+        const descTextarea = page.getByPlaceholder('전화번호, SNS');
         await descTextarea.click();
         await descTextarea.fill('테스트상품입니다.자동화테스트입니다.');
         await page.waitForTimeout(1000);
@@ -100,9 +109,9 @@ test.describe('번개장터 상품 등록', () => {
         const tagInput = page.getByPlaceholder('태그를 입력해 주세요 (최대 5개)');
         await tagInput.click();
         await page.waitForTimeout(1000);
-        await tagInput.fill('아이폰16');
-        await page.waitForTimeout(1000);
-        await page.getByText('아이폰16프로', { exact: true }).click();
+        await tagInput.fill('중고');
+        await page.waitForTimeout(1500);
+        await page.getByText('중고오토바이', { exact: true }).click();
         await page.waitForTimeout(1000);
 
         // 13. 가격 입력
