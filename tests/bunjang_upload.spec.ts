@@ -111,7 +111,7 @@ test.describe('번개장터 상품 등록', () => {
         await page.waitForTimeout(1000);
         await tagInput.fill('중고');
         await page.waitForTimeout(1500);
-        await page.getByText('중고오토바이', { exact: true }).click();
+        await page.getByRole('option', { name: '중고오토바이' }).click();
         await page.waitForTimeout(1000);
 
         // 13. 가격 입력
