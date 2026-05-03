@@ -67,71 +67,55 @@ test.describe('번개장터 상품 등록', () => {
 
         // 8. 상품명 입력
         console.log('8. 상품명 입력...');
-        const titleInput = page.locator('input[placeholder="상품명을 입력해 주세요."]');
+        const titleInput = page.getByPlaceholder('상품명을 입력해 주세요.');
         await titleInput.click();
         await titleInput.fill('테스트 상품명');
         await page.waitForTimeout(1000);
 
-        // 9. 카테고리 선택
+        // 9. 카테고리 선택 (여성의류 > 아우터 > 패딩)
         console.log('9. 카테고리 선택...');
-        const categoryTrigger = page.getByRole('button', { name: '카테고리' });
-        await categoryTrigger.click();
+        await page.getByText('여성의류', { exact: true }).click();
         await page.waitForTimeout(1000);
-
-        // 메인 카테고리 '여성의류' 클릭
-        const womenCategory = page.locator('a[href*="/categories/women/outer"]');
-        await womenCategory.click();
-        await page.waitForTimeout(2000);
-
-        // 서브 카테고리 '패딩' 클릭
-        const paddingCategory = page.locator('a[href*="/categories/women/outer/padding"]');
-        await paddingCategory.click();
+        await page.getByText('아우터', { exact: true }).click();
+        await page.waitForTimeout(1000);
+        await page.getByText('패딩', { exact: true }).click();
         await page.waitForTimeout(1000);
 
         // 10. 상품 상태 선택
         console.log('10. 상품 상태 선택...');
-        const statusTrigger = page.locator('.item-state');
-        await statusTrigger.click();
+        await page.getByText('상품 상태를 선택해 주세요', { exact: true }).click();
         await page.waitForTimeout(1000);
-
-        // '새 상품 (미사용)' 선택
-        const newProduct = page.locator('.state-item:text("새 상품")');
-        await newProduct.click();
+        await page.getByText('새 상품 (미사용)', { exact: true }).click();
         await page.waitForTimeout(1000);
 
         // 11. 설명 입력
         console.log('11. 설명 입력...');
-        const descTextarea = page.locator('textarea[placeholder="전화번호, SNS 등 연락처나 개인정보를 남기면 거래가 취소될 수 있어요."]');
+        const descTextarea = page.getByPlaceholder(/전화번호, SNS/);
         await descTextarea.click();
-        await descTextarea.fill('테스트 상품입니다. 자동화 테스트입니다.');
+        await descTextarea.fill('테스트상품입니다.자동화테스트입니다.');
         await page.waitForTimeout(1000);
 
         // 12. 태그 입력
         console.log('12. 태그 입력...');
-        const tagInput = page.locator('input[placeholder="태그를 입력해 주세요 (최대 5개)"]');
+        const tagInput = page.getByPlaceholder('태그를 입력해 주세요 (최대 5개)');
         await tagInput.click();
         await page.waitForTimeout(1000);
-
         await tagInput.fill('아이폰16');
         await page.waitForTimeout(1000);
-
-        // 자동완성된 태그 클릭
-        const autoCompleteTag = page.locator('a.tag-item:text("아이폰16프로")');
-        await autoCompleteTag.click();
+        await page.getByText('아이폰16프로', { exact: true }).click();
         await page.waitForTimeout(1000);
 
         // 13. 가격 입력
         console.log('13. 가격 입력...');
-        const priceInput = page.locator('input[placeholder="가격을 입력해 주세요"]');
+        const priceInput = page.getByPlaceholder('가격을 입력해 주세요');
         await priceInput.click();
         await page.waitForTimeout(1000);
-
         await priceInput.fill('10000');
         await page.waitForTimeout(1000);
 
         // 14. 등록하기 버튼 앵커링 (포커싱)
         console.log('14. 등록하기 버튼 포커싱...');
-        const registerButton = page.getByRole('button', { name: '등록하기', exact: true });
+        const registerButton = page.getByRole('button', { name: '등록하기' });
         await registerButton.scrollIntoViewIfNeeded();
         await page.waitForTimeout(5000);
 

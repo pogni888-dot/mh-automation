@@ -10,6 +10,7 @@ tests/kakao_resume2.spec.ts
 tests/yeogi_appium.ts
 tests/kakao_login.spec.ts
 tests/kakao_category.spec.ts
+tests/oracle_cicd_guide.txt
 *.db
 *.key
 auth.json
