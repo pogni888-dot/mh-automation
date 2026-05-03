@@ -74,7 +74,7 @@ test.describe('번개장터 상품 등록', () => {
 
         // 9. 카테고리 선택 (여성의류 > 아우터 > 패딩)
         console.log('9. 카테고리 선택...');
-        await page.getByText('여성의류', { exact: true }).click();
+        await page.getByText('남성의류', { exact: true }).click();
         await page.waitForTimeout(1000);
         await page.getByText('아우터', { exact: true }).click();
         await page.waitForTimeout(1000);
