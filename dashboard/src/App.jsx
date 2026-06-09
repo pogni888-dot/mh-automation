@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Play, Square, Terminal, CheckCircle, XCircle, Activity, KeyRound, Send } from 'lucide-react';
+import { Play, Square, Terminal, CheckCircle, XCircle, Activity, KeyRound, Send, Calendar, ChevronLeft, ChevronRight, Plus, Trash2, Edit3, Clock, FileText } from 'lucide-react';
 import './App.css';
 
 const isProduction = import.meta.env.PROD;
@@ -58,7 +58,120 @@ function App() {
     return saved ? JSON.parse(saved) : null;
   });
 
-  // 로그인 모달 상태
+  // === 일정표 (Schedule) 상태 ===
+  const [schedules, setSchedules] = useState([]);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState(null);
+  
+  const [scheduleTitle, setScheduleTitle] = useState('');
+  const [scheduleStartDate, setScheduleStartDate] = useState('');
+  const [scheduleEndDate, setScheduleEndDate] = useState('');
+  const [scheduleEnv, setScheduleEnv] = useState('alpha');
+  const [scheduleDesc, setScheduleDesc] = useState('');
+
+  const fetchSchedules = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/schedules`);
+      if (res.ok) {
+        const data = await res.json();
+        setSchedules(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch schedules:", err);
+    }
+  };
+
+  const handleOpenAddSchedule = (dateStr = '') => {
+    setEditingSchedule(null);
+    setScheduleTitle('');
+    const today = dateStr || new Date().toISOString().split('T')[0];
+    setScheduleStartDate(today);
+    setScheduleEndDate(today);
+    setScheduleEnv('alpha');
+    setScheduleDesc('');
+    setShowScheduleModal(true);
+  };
+
+  const handleOpenEditSchedule = (sch) => {
+    setEditingSchedule(sch);
+    setScheduleTitle(sch.title);
+    setScheduleStartDate(sch.start_date);
+    setScheduleEndDate(sch.end_date);
+    setScheduleEnv(sch.environment || 'alpha');
+    setScheduleDesc(sch.description || '');
+    setShowScheduleModal(true);
+  };
+
+  const handleSaveSchedule = async () => {
+    if (!scheduleTitle.trim()) {
+      alert('일정 제목을 입력해주세요.');
+      return;
+    }
+    if (!scheduleStartDate || !scheduleEndDate) {
+      alert('시작일과 종료일을 모두 선택해주세요.');
+      return;
+    }
+    if (scheduleStartDate > scheduleEndDate) {
+      alert('종료일은 시작일 이후여야 합니다.');
+      return;
+    }
+
+    const payload = {
+      title: scheduleTitle,
+      start_date: scheduleStartDate,
+      end_date: scheduleEndDate,
+      environment: scheduleEnv,
+      description: scheduleDesc || null
+    };
+
+    try {
+      let url = `${API_BASE}/api/schedules`;
+      let method = 'POST';
+
+      if (editingSchedule) {
+        url = `${API_BASE}/api/schedules/${editingSchedule.id}`;
+        method = 'PUT';
+      }
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        setShowScheduleModal(false);
+        fetchSchedules();
+      } else {
+        const data = await res.json();
+        alert(data.error || '일정 저장 중 에러가 발생했습니다.');
+      }
+    } catch (err) {
+      console.error("Error saving schedule:", err);
+      alert('서버와 통신 중 에러가 발생했습니다.');
+    }
+  };
+
+  const handleDeleteSchedule = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/schedules/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        setShowScheduleModal(false);
+        fetchSchedules();
+      } else {
+        alert('일정 삭제 중 에러가 발생했습니다.');
+      }
+    } catch (err) {
+      console.error("Error deleting schedule:", err);
+      alert('서버와 통신 중 에러가 발생했습니다.');
+    }
+  };
+
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginId, setLoginId] = useState('');
   const [loginPw, setLoginPw] = useState('');
@@ -106,6 +219,7 @@ function App() {
       .catch(err => console.error("Failed to fetch tests", err));
 
     fetchAuthStatus();
+    fetchSchedules();
 
     socket.on('connect', () => setIsConnected(true));
     socket.on('disconnect', () => setIsConnected(false));
@@ -357,21 +471,31 @@ function App() {
             </button>
           </nav>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {!loggedInUser ? (
-            <>
-              <button className="btn" onClick={() => setShowSignUpModal(true)} style={{ backgroundColor: '#3b82f6', color: '#fff' }}>회원가입</button>
-              <button className="btn" onClick={() => setShowLoginModal(true)} style={{ backgroundColor: '#10b981', color: '#fff' }}>로그인</button>
-            </>
-          ) : (
-            <>
-              <span style={{ color: '#fff', fontWeight: 'bold' }}>{loggedInUser.name}님</span>
-              <button className="btn" onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: '#fff' }}>로그아웃</button>
-            </>
-          )}
-          <div className="status-badge">
-            <div className={`status-dot ${isConnected ? 'online' : 'offline'}`} />
-            {isConnected ? 'System Ready' : 'Disconnected'}
+        <div className="header-right-container">
+          <div className="header-top-row">
+            <button
+              className={`btn btn-schedule ${activeTab === 'schedule' ? 'active' : ''}`}
+              onClick={() => setActiveTab('schedule')}
+            >
+              <Calendar size={16} /> 일정표
+            </button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {!loggedInUser ? (
+              <>
+                <button className="btn" onClick={() => setShowSignUpModal(true)} style={{ backgroundColor: '#3b82f6', color: '#fff' }}>회원가입</button>
+                <button className="btn" onClick={() => setShowLoginModal(true)} style={{ backgroundColor: '#10b981', color: '#fff' }}>로그인</button>
+              </>
+            ) : (
+              <>
+                <span style={{ color: '#fff', fontWeight: 'bold' }}>{loggedInUser.name}님</span>
+                <button className="btn" onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: '#fff' }}>로그아웃</button>
+              </>
+            )}
+            <div className="status-badge">
+              <div className={`status-dot ${isConnected ? 'online' : 'offline'}`} />
+              {isConnected ? 'System Ready' : 'Disconnected'}
+            </div>
           </div>
         </div>
       </header>
@@ -800,7 +924,311 @@ function App() {
             </div>
           </div>
         )}
+
+        {/* ========== 일정표 탭 ========== */}
+        {activeTab === 'schedule' && (
+          <div className="schedule-panel fade-in">
+            <div className="schedule-header">
+              <div className="schedule-title-area">
+                <Calendar className="icon-calendar" size={24} />
+                <h2>QA 일정 관리 대시보드</h2>
+              </div>
+              <button className="btn btn-run" onClick={() => handleOpenAddSchedule()}>
+                <Plus size={16} /> 일정 추가
+              </button>
+            </div>
+
+            <div className="schedule-layout">
+              {/* 달력 섹션 */}
+              <div className="calendar-section">
+                <div className="calendar-controls">
+                  <button className="calendar-nav-btn" onClick={() => {
+                    if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(currentYear - 1); }
+                    else { setCurrentMonth(currentMonth - 1); }
+                  }}>
+                    <ChevronLeft size={18} />
+                  </button>
+                  <span className="calendar-current-month">
+                    {currentYear}년 {currentMonth + 1}월
+                  </span>
+                  <button className="calendar-nav-btn" onClick={() => {
+                    if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(currentYear + 1); }
+                    else { setCurrentMonth(currentMonth + 1); }
+                  }}>
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+
+                <div className="calendar-grid-header">
+                  {['일', '월', '화', '수', '목', '금', '토'].map(d => (
+                    <div key={d} className="calendar-grid-header-cell">{d}</div>
+                  ))}
+                </div>
+
+                {/* Week-row based calendar with Gantt bars */}
+                <div className="calendar-weeks-container">
+                  {(() => {
+                    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+                    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                    const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+                    const monthFirstDate = `${monthStr}-01`;
+                    const monthLastDate = `${monthStr}-${String(daysInMonth).padStart(2, '0')}`;
+
+                    // Build week rows: each week is an array of 7 cells (null for empty)
+                    const weeks = [];
+                    let currentWeek = new Array(firstDayOfMonth).fill(null);
+                    for (let day = 1; day <= daysInMonth; day++) {
+                      currentWeek.push(day);
+                      if (currentWeek.length === 7) {
+                        weeks.push(currentWeek);
+                        currentWeek = [];
+                      }
+                    }
+                    if (currentWeek.length > 0) {
+                      while (currentWeek.length < 7) currentWeek.push(null);
+                      weeks.push(currentWeek);
+                    }
+
+                    // Filter schedules that overlap with this month
+                    const monthSchedules = schedules.filter(s =>
+                      s.start_date <= monthLastDate && s.end_date >= monthFirstDate
+                    );
+
+                    return weeks.map((week, weekIdx) => {
+                      // Find the date range for this week row
+                      const weekDays = week.map(d => d ? `${monthStr}-${String(d).padStart(2, '0')}` : null);
+
+                      // Get bars for this week
+                      const weekBars = [];
+                      monthSchedules.forEach(s => {
+                        // Clamp the schedule to this month
+                        const clampedStart = s.start_date < monthFirstDate ? monthFirstDate : s.start_date;
+                        const clampedEnd = s.end_date > monthLastDate ? monthLastDate : s.end_date;
+
+                        // Find start/end column in this week
+                        let startCol = -1;
+                        let endCol = -1;
+                        for (let i = 0; i < 7; i++) {
+                          if (weekDays[i] && weekDays[i] >= clampedStart && weekDays[i] <= clampedEnd) {
+                            if (startCol === -1) startCol = i;
+                            endCol = i;
+                          }
+                        }
+                        if (startCol !== -1) {
+                          weekBars.push({ ...s, startCol, endCol, span: endCol - startCol + 1 });
+                        }
+                      });
+
+                      return (
+                        <div key={`week-${weekIdx}`} className="calendar-week-row">
+                          {/* Day number cells */}
+                          <div className="week-day-numbers">
+                            {week.map((day, dayIdx) => {
+                              if (!day) return <div key={`e-${dayIdx}`} className="day-num-cell empty"></div>;
+                              const dateStr = `${monthStr}-${String(day).padStart(2, '0')}`;
+                              const isToday = new Date().toDateString() === new Date(currentYear, currentMonth, day).toDateString();
+                              const isSelected = selectedDate === dateStr;
+                              const hasSchedules = monthSchedules.some(s => {
+                                const cs = s.start_date < monthFirstDate ? monthFirstDate : s.start_date;
+                                const ce = s.end_date > monthLastDate ? monthLastDate : s.end_date;
+                                return dateStr >= cs && dateStr <= ce;
+                              });
+                              return (
+                                <div
+                                  key={`d-${day}`}
+                                  className={`day-num-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${hasSchedules ? 'has-schedule' : ''}`}
+                                  onClick={() => setSelectedDate(dateStr)}
+                                >
+                                  {day}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {/* Bars area */}
+                          {weekBars.length > 0 && (
+                            <div className="week-bars-area">
+                              {weekBars.map((bar) => (
+                                <div
+                                  key={`bar-${bar.id}-${weekIdx}`}
+                                  className={`schedule-bar env-${bar.environment}`}
+                                  style={{
+                                    gridColumn: `${bar.startCol + 1} / span ${bar.span}`,
+                                  }}
+                                  title={`${bar.title} (${bar.start_date} ~ ${bar.end_date})`}
+                                  onClick={(e) => { e.stopPropagation(); handleOpenEditSchedule(bar); }}
+                                >
+                                  <span className="bar-text">{bar.title}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+
+              {/* 우측 프로젝트 목록 */}
+              <div className="schedules-list-section">
+                <h3 className="section-title">
+                  {selectedDate ? `📋 ${selectedDate} 프로젝트` : '📋 전체 프로젝트'}
+                </h3>
+                <div className="schedules-list-container">
+                  {(() => {
+                    const filtered = selectedDate
+                      ? schedules.filter(s => s.start_date <= selectedDate && s.end_date >= selectedDate)
+                      : schedules;
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="schedules-empty">
+                          <FileText size={40} className="empty-icon" />
+                          <p>{selectedDate ? '해당 날짜에 등록된 일정이 없습니다.' : '등록된 일정이 없습니다.'}</p>
+                          {selectedDate && (
+                            <button className="btn btn-schedule-add-empty" onClick={() => handleOpenAddSchedule(selectedDate)}>
+                              일정 등록하기
+                            </button>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    return filtered.map(s => (
+                      <div key={s.id} className="schedule-item-card" onClick={() => handleOpenEditSchedule(s)}>
+                        <div className={`schedule-item-badge env-${s.environment}`}>
+                          {s.environment === 'alpha' ? '알파' : '베타'}
+                        </div>
+                        <div className="schedule-item-content">
+                          <h4 className="schedule-item-title">{s.title}</h4>
+                          <div className="schedule-item-meta">
+                            <span className="meta-item"><Clock size={12} /> {s.start_date} ~ {s.end_date}</span>
+                          </div>
+                          {s.description && <p className="schedule-item-desc">{s.description}</p>}
+                        </div>
+                        <div className="schedule-item-actions">
+                          <Edit3 size={16} className="action-icon edit" />
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
+
+      {/* 일정 추가/수정 모달 */}
+      {showScheduleModal && (
+        <div className="modal-overlay fade-in" onClick={() => setShowScheduleModal(false)}>
+          <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="auth-modal-header">
+              <Calendar size={22} />
+              <h2>{editingSchedule ? '일정 수정' : '일정 추가'}</h2>
+            </div>
+            <p className="auth-modal-desc">
+              프로젝트 일정 정보를 입력해 주세요.
+            </p>
+            <div className="auth-form">
+              <div className="auth-field">
+                <label>프로젝트 제목</label>
+                <input
+                  type="text"
+                  placeholder="프로젝트명을 입력하세요"
+                  value={scheduleTitle}
+                  onChange={(e) => setScheduleTitle(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="auth-field">
+                  <label>시작일</label>
+                  <input
+                    type="date"
+                    value={scheduleStartDate}
+                    onChange={(e) => setScheduleStartDate(e.target.value)}
+                  />
+                </div>
+                <div className="auth-field">
+                  <label>종료일</label>
+                  <input
+                    type="date"
+                    value={scheduleEndDate}
+                    onChange={(e) => setScheduleEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="auth-field">
+                <label>검증환경</label>
+                <div className="env-radio-group">
+                  <label className={`env-radio-label ${scheduleEnv === 'alpha' ? 'active alpha' : ''}`}>
+                    <input
+                      type="radio"
+                      name="env"
+                      value="alpha"
+                      checked={scheduleEnv === 'alpha'}
+                      onChange={() => setScheduleEnv('alpha')}
+                    />
+                    <span className="radio-dot"></span>
+                    <span>알파 <small>(샌드박스)</small></span>
+                  </label>
+                  <label className={`env-radio-label ${scheduleEnv === 'beta' ? 'active beta' : ''}`}>
+                    <input
+                      type="radio"
+                      name="env"
+                      value="beta"
+                      checked={scheduleEnv === 'beta'}
+                      onChange={() => setScheduleEnv('beta')}
+                    />
+                    <span className="radio-dot"></span>
+                    <span>베타 <small>(스테이징)</small></span>
+                  </label>
+                </div>
+              </div>
+              <div className="auth-field">
+                <label>비고 (선택)</label>
+                <textarea
+                  placeholder="검증 특이사항, 검증 방법, 데이터세팅 요청 방법 등을 기재하세요"
+                  value={scheduleDesc}
+                  onChange={(e) => setScheduleDesc(e.target.value)}
+                  rows={3}
+                  style={{
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid rgba(148, 163, 184, 0.25)',
+                    borderRadius: '10px',
+                    padding: '0.75rem 1rem',
+                    fontSize: '0.95rem',
+                    color: 'var(--text-primary)',
+                    outline: 'none',
+                    resize: 'none',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+              <div className="auth-actions" style={{ justifyContent: 'space-between' }}>
+                {editingSchedule ? (
+                  <button
+                    className="btn"
+                    onClick={() => handleDeleteSchedule(editingSchedule.id)}
+                    style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ff8888', border: '1px solid rgba(239, 68, 68, 0.4)' }}
+                  >
+                    <Trash2 size={16} /> 삭제
+                  </button>
+                ) : <div />}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="btn auth-cancel-btn" onClick={() => setShowScheduleModal(false)}>
+                    닫기
+                  </button>
+                  <button className="btn btn-run" onClick={handleSaveSchedule}>
+                    저장
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -29,6 +29,23 @@ const db = new sqlite3.Database(dbPath, (err) => {
     } else {
         db.serialize(() => {
             db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, user_id TEXT UNIQUE, password TEXT)");
+            // 기존 단일 date 스키마에서 start_date/end_date 범위 스키마로 마이그레이션
+            db.get("SELECT sql FROM sqlite_master WHERE type='table' AND name='schedules'", [], (err, row) => {
+                if (row && row.sql && row.sql.includes('start_date')) {
+                    // 이미 새 스키마
+                } else {
+                    db.run("DROP TABLE IF EXISTS schedules");
+                    db.run(`CREATE TABLE IF NOT EXISTS schedules (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        title TEXT NOT NULL,
+                        start_date TEXT NOT NULL,
+                        end_date TEXT NOT NULL,
+                        environment TEXT NOT NULL DEFAULT 'alpha',
+                        description TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )`);
+                }
+            });
         });
     }
 });
@@ -228,6 +245,80 @@ app.get('/api/auth-status', (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
+
+// ============================================================
+// Schedule Management API (QA 일정 관리)
+// Fields: title, start_date, end_date, environment (alpha|beta), description
+// ============================================================
+
+// Get All Schedules
+app.get('/api/schedules', (req, res) => {
+    db.all("SELECT * FROM schedules ORDER BY start_date ASC", [], (err, rows) => {
+        if (err) {
+            console.error('Error fetching schedules:', err);
+            return res.status(500).json({ error: '일정을 가져오는 중 에러가 발생했습니다.' });
+        }
+        res.json(rows);
+    });
+});
+
+// Add a Schedule
+app.post('/api/schedules', (req, res) => {
+    const { title, start_date, end_date, environment, description } = req.body;
+    if (!title || !start_date || !end_date) {
+        return res.status(400).json({ error: '제목, 시작일, 종료일은 필수 입력 항목입니다.' });
+    }
+    db.run("INSERT INTO schedules (title, start_date, end_date, environment, description) VALUES (?, ?, ?, ?, ?)",
+        [title, start_date, end_date, environment || 'alpha', description || null],
+        function (err) {
+            if (err) {
+                console.error('Error inserting schedule:', err);
+                return res.status(500).json({ error: '일정을 추가하는 중 에러가 발생했습니다.' });
+            }
+            res.status(201).json({ id: this.lastID, message: '일정이 추가되었습니다.' });
+        }
+    );
+});
+
+// Update a Schedule
+app.put('/api/schedules/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, start_date, end_date, environment, description } = req.body;
+    if (!title || !start_date || !end_date) {
+        return res.status(400).json({ error: '제목, 시작일, 종료일은 필수 입력 항목입니다.' });
+    }
+    db.run("UPDATE schedules SET title = ?, start_date = ?, end_date = ?, environment = ?, description = ? WHERE id = ?",
+        [title, start_date, end_date, environment || 'alpha', description || null, id],
+        function (err) {
+            if (err) {
+                console.error('Error updating schedule:', err);
+                return res.status(500).json({ error: '일정을 수정하는 중 에러가 발생했습니다.' });
+            }
+            if (this.changes > 0) {
+                res.json({ message: '일정이 수정되었습니다.' });
+            } else {
+                res.status(404).json({ error: '해당 일정을 찾을 수 없습니다.' });
+            }
+        }
+    );
+});
+
+// Delete a Schedule
+app.delete('/api/schedules/:id', (req, res) => {
+    const { id } = req.params;
+    db.run("DELETE FROM schedules WHERE id = ?", [id], function (err) {
+        if (err) {
+            console.error('Error deleting schedule:', err);
+            return res.status(500).json({ error: '일정을 삭제하는 중 에러가 발생했습니다.' });
+        }
+        if (this.changes > 0) {
+            res.json({ message: '일정이 삭제되었습니다.' });
+        } else {
+            res.status(404).json({ error: '해당 일정을 찾을 수 없습니다.' });
+        }
+    });
+});
+
 
 // ============================================================
 // Image Upload API (for Playwright automation)
