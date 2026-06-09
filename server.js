@@ -543,6 +543,16 @@ io.on('connection', (socket) => {
     });
 });
 
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, 'dashboard', 'dist')));
+app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api/')) {
+        res.sendFile(path.join(__dirname, 'dashboard', 'dist', 'index.html'));
+    } else {
+        next();
+    }
+});
+
 server.listen(PORT, () => {
     console.log(`Backend Server running on port ${PORT}`);
 });

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { Play, Square, Terminal, CheckCircle, XCircle, Activity, KeyRound, Send, Calendar, ChevronLeft, ChevronRight, Plus, Trash2, Edit3, Clock, FileText } from 'lucide-react';
+import { Play, Square, Terminal, CheckCircle, XCircle, Activity, KeyRound, Send, Calendar, ChevronLeft, ChevronRight, Plus, Trash2, Edit3, Clock, FileText, List } from 'lucide-react';
 import './App.css';
 
 const isProduction = import.meta.env.PROD;
@@ -25,6 +26,9 @@ const testDescriptions = {
 };
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [tests, setTests] = useState([]);
   const [activeTest, setActiveTest] = useState(null);
   const [logs, setLogs] = useState([]);
@@ -39,9 +43,6 @@ function App() {
   const [authId, setAuthId] = useState('');
   const [authPw, setAuthPw] = useState('');
   const [pendingTest, setPendingTest] = useState(null);
-
-  // === 탭 전환 ===
-  const [activeTab, setActiveTab] = useState('automation');
 
   // === API Test 상태 ===
   const [apiSubTab, setApiSubTab] = useState('get-users');
@@ -69,8 +70,27 @@ function App() {
   const [scheduleTitle, setScheduleTitle] = useState('');
   const [scheduleStartDate, setScheduleStartDate] = useState('');
   const [scheduleEndDate, setScheduleEndDate] = useState('');
-  const [scheduleEnv, setScheduleEnv] = useState('alpha');
-  const [scheduleDesc, setScheduleDesc] = useState('');
+  const [scheduleEnv, setScheduleEnv] = useState('alpha1');
+  const [scheduleQaMethod, setScheduleQaMethod] = useState('');
+  const [scheduleDataSetting, setScheduleDataSetting] = useState('');
+  const [scheduleNotes, setScheduleNotes] = useState('');
+
+  const parseDescription = (desc) => {
+    if (!desc) return { qaMethod: '', dataSetting: '', notes: '' };
+    try {
+      const parsed = JSON.parse(desc);
+      if (typeof parsed === 'object') {
+        return {
+          qaMethod: parsed.qaMethod || '',
+          dataSetting: parsed.dataSetting || '',
+          notes: parsed.notes || ''
+        };
+      }
+    } catch (e) {
+      return { qaMethod: '', dataSetting: '', notes: desc };
+    }
+    return { qaMethod: '', dataSetting: '', notes: desc };
+  };
 
   const fetchSchedules = async () => {
     try {
@@ -87,11 +107,14 @@ function App() {
   const handleOpenAddSchedule = (dateStr = '') => {
     setEditingSchedule(null);
     setScheduleTitle('');
-    const today = dateStr || new Date().toISOString().split('T')[0];
-    setScheduleStartDate(today);
-    setScheduleEndDate(today);
-    setScheduleEnv('alpha');
-    setScheduleDesc('');
+    // dateStr이 없으면 selectedDate, 그것도 없으면 오늘 날짜 사용
+    const targetDate = dateStr || selectedDate || new Date().toISOString().split('T')[0];
+    setScheduleStartDate(targetDate);
+    setScheduleEndDate(targetDate);
+    setScheduleEnv('alpha1');
+    setScheduleQaMethod('');
+    setScheduleDataSetting('');
+    setScheduleNotes('');
     setShowScheduleModal(true);
   };
 
@@ -100,8 +123,11 @@ function App() {
     setScheduleTitle(sch.title);
     setScheduleStartDate(sch.start_date);
     setScheduleEndDate(sch.end_date);
-    setScheduleEnv(sch.environment || 'alpha');
-    setScheduleDesc(sch.description || '');
+    setScheduleEnv(sch.environment || 'alpha1');
+    const parsed = parseDescription(sch.description);
+    setScheduleQaMethod(parsed.qaMethod);
+    setScheduleDataSetting(parsed.dataSetting);
+    setScheduleNotes(parsed.notes);
     setShowScheduleModal(true);
   };
 
@@ -119,12 +145,18 @@ function App() {
       return;
     }
 
+    const descJson = JSON.stringify({
+      qaMethod: scheduleQaMethod,
+      dataSetting: scheduleDataSetting,
+      notes: scheduleNotes
+    });
+
     const payload = {
       title: scheduleTitle,
       start_date: scheduleStartDate,
       end_date: scheduleEndDate,
       environment: scheduleEnv,
-      description: scheduleDesc || null
+      description: descJson
     };
 
     try {
@@ -450,57 +482,59 @@ function App() {
 
   return (
     <div className="container">
-      <header className="header">
-        <div className="header-left">
-          <div className="logo">
-            <Activity className="icon-pulse" size={28} />
-            <h1>최민호 자동화 포트폴리오</h1>
+      {location.pathname !== '/schedule' && (
+        <header className="header">
+          <div className="header-left">
+            <div className="logo">
+              <Activity className="icon-pulse" size={28} />
+              <h1>최민호 자동화 포트폴리오</h1>
+            </div>
+            <nav className="main-tabs">
+              <button
+                className={`main-tab ${location.pathname === '/' ? 'active' : ''}`}
+                onClick={() => navigate('/')}
+              >
+                Automation
+              </button>
+              <button
+                className={`main-tab ${location.pathname === '/api-test' ? 'active' : ''}`}
+                onClick={() => navigate('/api-test')}
+              >
+                API Test
+              </button>
+            </nav>
           </div>
-          <nav className="main-tabs">
-            <button
-              className={`main-tab ${activeTab === 'automation' ? 'active' : ''}`}
-              onClick={() => setActiveTab('automation')}
-            >
-              Automation
-            </button>
-            <button
-              className={`main-tab ${activeTab === 'api-test' ? 'active' : ''}`}
-              onClick={() => setActiveTab('api-test')}
-            >
-              API Test
-            </button>
-          </nav>
-        </div>
-        <div className="header-right-container">
-          <div className="header-top-row">
-            <button
-              className={`btn btn-schedule ${activeTab === 'schedule' ? 'active' : ''}`}
-              onClick={() => setActiveTab('schedule')}
-            >
-              <Calendar size={16} /> 일정표
-            </button>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {!loggedInUser ? (
-              <>
-                <button className="btn" onClick={() => setShowSignUpModal(true)} style={{ backgroundColor: '#3b82f6', color: '#fff' }}>회원가입</button>
-                <button className="btn" onClick={() => setShowLoginModal(true)} style={{ backgroundColor: '#10b981', color: '#fff' }}>로그인</button>
-              </>
-            ) : (
-              <>
-                <span style={{ color: '#fff', fontWeight: 'bold' }}>{loggedInUser.name}님</span>
-                <button className="btn" onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: '#fff' }}>로그아웃</button>
-              </>
-            )}
-            <div className="status-badge">
-              <div className={`status-dot ${isConnected ? 'online' : 'offline'}`} />
-              {isConnected ? 'System Ready' : 'Disconnected'}
+          <div className="header-right-container">
+            <div className="header-top-row">
+              <button
+                className={`btn btn-schedule ${location.pathname === '/schedule' ? 'active' : ''}`}
+                onClick={() => navigate('/schedule')}
+              >
+                <Calendar size={16} /> 일정표
+              </button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {!loggedInUser ? (
+                <>
+                  <button className="btn" onClick={() => setShowSignUpModal(true)} style={{ backgroundColor: '#3b82f6', color: '#fff' }}>회원가입</button>
+                  <button className="btn" onClick={() => setShowLoginModal(true)} style={{ backgroundColor: '#10b981', color: '#fff' }}>로그인</button>
+                </>
+              ) : (
+                <>
+                  <span style={{ color: '#fff', fontWeight: 'bold' }}>{loggedInUser.name}님</span>
+                  <button className="btn" onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: '#fff' }}>로그아웃</button>
+                </>
+              )}
+              <div className="status-badge">
+                <div className={`status-dot ${isConnected ? 'online' : 'offline'}`} />
+                {isConnected ? 'System Ready' : 'Disconnected'}
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
-      {isSessionExpired && activeTab === 'automation' && (
+      {isSessionExpired && location.pathname === '/' && (
         <div className="session-warning-banner fade-in">
           ⚠️ <strong>로그인 세션이 만료되었습니다.</strong> 원활한 테스트를 위해 <code>generate_auth.spec.ts</code>를 먼저 실행해주세요.
         </div>
@@ -703,9 +737,10 @@ function App() {
       )}
 
       <main className="main-content">
-        {/* ========== Automation 탭 ========== */}
-        {activeTab === 'automation' && (
-          <>
+        <Routes>
+          {/* ========== Automation 탭 ========== */}
+          <Route path="/" element={
+            <>
             {(() => {
               const giftTests = tests.filter(test => test.includes('kakao') || test.includes('generate'));
               const bunjangTests = tests.filter(test => test.includes('bunjang'));
@@ -839,10 +874,10 @@ function App() {
               </div>
             </div>
           </>
-        )}
+        } />
 
         {/* ========== API Test 탭 ========== */}
-        {activeTab === 'api-test' && (
+        <Route path="/api-test" element={
           <div className="api-test-panel fade-in">
             {/* 서브 탭 (회원정보 조회, 회원가입, 로그인, 수정, 삭제) */}
             <div className="api-sub-tabs">
@@ -923,19 +958,28 @@ function App() {
               </div>
             </div>
           </div>
-        )}
+        } />
 
         {/* ========== 일정표 탭 ========== */}
-        {activeTab === 'schedule' && (
+        <Route path="/schedule" element={
           <div className="schedule-panel fade-in">
             <div className="schedule-header">
               <div className="schedule-title-area">
                 <Calendar className="icon-calendar" size={24} />
                 <h2>QA 일정 관리 대시보드</h2>
               </div>
-              <button className="btn btn-run" onClick={() => handleOpenAddSchedule()}>
-                <Plus size={16} /> 일정 추가
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  className="btn" 
+                  onClick={() => setSelectedDate(null)}
+                  style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.4)' }}
+                >
+                  <List size={16} /> 프로젝트 현황
+                </button>
+                <button className="btn btn-run" onClick={() => handleOpenAddSchedule()}>
+                  <Plus size={16} /> 일정 추가
+                </button>
+              </div>
             </div>
 
             <div className="schedule-layout">
@@ -1094,29 +1138,43 @@ function App() {
                       );
                     }
 
-                    return filtered.map(s => (
-                      <div key={s.id} className="schedule-item-card" onClick={() => handleOpenEditSchedule(s)}>
-                        <div className={`schedule-item-badge env-${s.environment}`}>
-                          {s.environment === 'alpha' ? '알파' : '베타'}
-                        </div>
-                        <div className="schedule-item-content">
-                          <h4 className="schedule-item-title">{s.title}</h4>
-                          <div className="schedule-item-meta">
-                            <span className="meta-item"><Clock size={12} /> {s.start_date} ~ {s.end_date}</span>
+                    return filtered.map(s => {
+                      const parsedDesc = parseDescription(s.description);
+                      return (
+                        <div key={s.id} className="schedule-item-card" onClick={() => handleOpenEditSchedule(s)}>
+                          <div className={`schedule-item-badge env-${s.environment}`}>
+                            {s.environment === 'alpha1' ? '알파(1차)' :
+                             s.environment === 'alpha2' ? '알파(2차)' :
+                             s.environment === 'beta1' ? '베타(1차)' :
+                             s.environment === 'beta2' ? '베타(2차)' :
+                             s.environment === 'real' ? '리얼' : '알파(1차)'}
                           </div>
-                          {s.description && <p className="schedule-item-desc">{s.description}</p>}
+                          <div className="schedule-item-content">
+                            <h4 className="schedule-item-title">{s.title}</h4>
+                            <div className="schedule-item-meta">
+                              <span className="meta-item"><Clock size={12} /> {s.start_date} ~ {s.end_date}</span>
+                            </div>
+                            {s.description && (
+                              <div className="schedule-item-desc-details" style={{ marginTop: '8px', fontSize: '0.85rem', color: '#94a3b8' }}>
+                                {parsedDesc.qaMethod && <div><strong style={{color: '#cbd5e1'}}>검증 방법:</strong> {parsedDesc.qaMethod}</div>}
+                                {parsedDesc.dataSetting && <div style={{marginTop: '2px'}}><strong style={{color: '#cbd5e1'}}>데이터 세팅:</strong> {parsedDesc.dataSetting}</div>}
+                                {parsedDesc.notes && <div style={{marginTop: '2px'}}><strong style={{color: '#cbd5e1'}}>특이사항:</strong> {parsedDesc.notes}</div>}
+                              </div>
+                            )}
+                          </div>
+                          <div className="schedule-item-actions">
+                            <Edit3 size={16} className="action-icon edit" />
+                          </div>
                         </div>
-                        <div className="schedule-item-actions">
-                          <Edit3 size={16} className="action-icon edit" />
-                        </div>
-                      </div>
-                    ));
+                      );
+                    });
                   })()}
                 </div>
               </div>
             </div>
           </div>
-        )}
+        } />
+        </Routes>
       </main>
 
       {/* 일정 추가/수정 모달 */}
@@ -1161,38 +1219,113 @@ function App() {
               </div>
               <div className="auth-field">
                 <label>검증환경</label>
-                <div className="env-radio-group">
-                  <label className={`env-radio-label ${scheduleEnv === 'alpha' ? 'active alpha' : ''}`}>
+                <div className="env-radio-group" style={{ flexWrap: 'wrap' }}>
+                  <label className={`env-radio-label ${scheduleEnv === 'alpha1' ? 'active alpha1' : ''}`}>
                     <input
                       type="radio"
                       name="env"
-                      value="alpha"
-                      checked={scheduleEnv === 'alpha'}
-                      onChange={() => setScheduleEnv('alpha')}
+                      value="alpha1"
+                      checked={scheduleEnv === 'alpha1'}
+                      onChange={() => setScheduleEnv('alpha1')}
                     />
                     <span className="radio-dot"></span>
-                    <span>알파 <small>(샌드박스)</small></span>
+                    <span>알파(1차)</span>
                   </label>
-                  <label className={`env-radio-label ${scheduleEnv === 'beta' ? 'active beta' : ''}`}>
+                  <label className={`env-radio-label ${scheduleEnv === 'alpha2' ? 'active alpha2' : ''}`}>
                     <input
                       type="radio"
                       name="env"
-                      value="beta"
-                      checked={scheduleEnv === 'beta'}
-                      onChange={() => setScheduleEnv('beta')}
+                      value="alpha2"
+                      checked={scheduleEnv === 'alpha2'}
+                      onChange={() => setScheduleEnv('alpha2')}
                     />
                     <span className="radio-dot"></span>
-                    <span>베타 <small>(스테이징)</small></span>
+                    <span>알파(2차)</span>
+                  </label>
+                  <label className={`env-radio-label ${scheduleEnv === 'beta1' ? 'active beta1' : ''}`}>
+                    <input
+                      type="radio"
+                      name="env"
+                      value="beta1"
+                      checked={scheduleEnv === 'beta1'}
+                      onChange={() => setScheduleEnv('beta1')}
+                    />
+                    <span className="radio-dot"></span>
+                    <span>베타(1차)</span>
+                  </label>
+                  <label className={`env-radio-label ${scheduleEnv === 'beta2' ? 'active beta2' : ''}`}>
+                    <input
+                      type="radio"
+                      name="env"
+                      value="beta2"
+                      checked={scheduleEnv === 'beta2'}
+                      onChange={() => setScheduleEnv('beta2')}
+                    />
+                    <span className="radio-dot"></span>
+                    <span>베타(2차)</span>
+                  </label>
+                  <label className={`env-radio-label ${scheduleEnv === 'real' ? 'active real' : ''}`}>
+                    <input
+                      type="radio"
+                      name="env"
+                      value="real"
+                      checked={scheduleEnv === 'real'}
+                      onChange={() => setScheduleEnv('real')}
+                    />
+                    <span className="radio-dot"></span>
+                    <span>리얼</span>
                   </label>
                 </div>
               </div>
               <div className="auth-field">
-                <label>비고 (선택)</label>
+                <label>검증 방법 관련</label>
                 <textarea
-                  placeholder="검증 특이사항, 검증 방법, 데이터세팅 요청 방법 등을 기재하세요"
-                  value={scheduleDesc}
-                  onChange={(e) => setScheduleDesc(e.target.value)}
-                  rows={3}
+                  placeholder="검증 방법에 대한 상세 내용을 기재하세요"
+                  value={scheduleQaMethod}
+                  onChange={(e) => setScheduleQaMethod(e.target.value)}
+                  rows={2}
+                  style={{
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid rgba(148, 163, 184, 0.25)',
+                    borderRadius: '10px',
+                    padding: '0.75rem 1rem',
+                    fontSize: '0.95rem',
+                    color: 'var(--text-primary)',
+                    outline: 'none',
+                    resize: 'none',
+                    fontFamily: 'inherit',
+                    marginBottom: '8px'
+                  }}
+                />
+              </div>
+              <div className="auth-field">
+                <label>데이터 세팅 요청 관련</label>
+                <textarea
+                  placeholder="데이터 세팅 요청 내용을 기재하세요"
+                  value={scheduleDataSetting}
+                  onChange={(e) => setScheduleDataSetting(e.target.value)}
+                  rows={2}
+                  style={{
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid rgba(148, 163, 184, 0.25)',
+                    borderRadius: '10px',
+                    padding: '0.75rem 1rem',
+                    fontSize: '0.95rem',
+                    color: 'var(--text-primary)',
+                    outline: 'none',
+                    resize: 'none',
+                    fontFamily: 'inherit',
+                    marginBottom: '8px'
+                  }}
+                />
+              </div>
+              <div className="auth-field">
+                <label>일정 관련 특이사항</label>
+                <textarea
+                  placeholder="기타 특이사항을 기재하세요"
+                  value={scheduleNotes}
+                  onChange={(e) => setScheduleNotes(e.target.value)}
+                  rows={2}
                   style={{
                     background: 'rgba(15, 23, 42, 0.8)',
                     border: '1px solid rgba(148, 163, 184, 0.25)',
